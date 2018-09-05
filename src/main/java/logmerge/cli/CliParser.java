@@ -1,8 +1,5 @@
 package logmerge.cli;
 
-import logmerge.LogMergeException;
-import org.apache.commons.cli.*;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -10,27 +7,72 @@ import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import logmerge.LogMergeException;
+
 public class CliParser {
 	private static final Logger LOGGER = Logger.getLogger(CliParser.class.getName());
 
 	public CliOptions parse(String[] args) {
 		Options options = new Options();
-		options.addOption(Option.builder("d").argName("del").hasArg().desc("the delimiter").type(String.class)
-				.longOpt("delimiter").build());
-		options.addOption(Option.builder("tf").argName("tf").hasArg()
-				.desc("the timestamp format (e.g. yyyy-MM-dd'T'HH:mm:ss.SSSXXX)").type(String.class)
-				.longOpt("timestamp-format").build());
-		options.addOption(Option.builder("i").argName("file(s)").hasArg().desc("the log files (comma separated)")
-				.type(String.class).longOpt("input").required().build());
-		options.addOption(Option.builder("o").argName("file").hasArg().desc("the output file").type(String.class)
-				.longOpt("output").build());
-		options.addOption(Option.builder("f").argName("field(s)").hasArg()
-				.desc("the field number(s) (comma separated) containing the timestamp").type(String.class)
-				.longOpt("field").build());
-		options.addOption(Option.builder("m").desc("if a marker for each file should be inserted").type(Boolean.class)
-				.longOpt("marker").build());
-		options.addOption(Option.builder("v").desc("outputs additional logging information").type(Boolean.class)
-				.longOpt("verbose").build());
+		options.addOption(Option.builder("d")
+				.argName("del")
+				.hasArg()
+				.desc("the delimiter")
+				.type(String.class)
+				.longOpt("delimiter")
+				.build());
+		options.addOption(Option.builder("tf")
+				.argName("tf")
+				.hasArg()
+				.desc("the timestamp format (e.g. yyyy-MM-dd'T'HH:mm:ss.SSSXXX)")
+				.type(String.class)
+				.longOpt("timestamp-format")
+				.build());
+		options.addOption(Option.builder("i")
+				.argName("file(s)")
+				.hasArg()
+				.desc("the log files (comma separated)")
+				.type(String.class)
+				.longOpt("input")
+				.required()
+				.build());
+		options.addOption(Option.builder("o")
+				.argName("file")
+				.hasArg()
+				.desc("the output file")
+				.type(String.class)
+				.longOpt("output")
+				.build());
+		options.addOption(Option.builder("f")
+				.argName("field(s)")
+				.hasArg()
+				.desc("the field number(s) (comma separated) containing the timestamp")
+				.type(String.class)
+				.longOpt("field")
+				.build());
+		options.addOption(Option.builder("g")
+				.desc("if the output file should be gzipped")
+				.type(Boolean.class)
+				.longOpt("gzip")
+				.build());
+		options.addOption(Option.builder("m")
+				.desc("if a marker for each file should be inserted")
+				.type(Boolean.class)
+				.longOpt("marker")
+				.build());
+		options.addOption(Option.builder("v")
+				.desc("outputs additional logging information")
+				.type(Boolean.class)
+				.longOpt("verbose")
+				.build());
 		CommandLineParser parser = new DefaultParser();
 		try {
 			CommandLine cli = parser.parse(options, args);
@@ -93,6 +135,9 @@ public class CliParser {
 							"Output file '" + file + "' already exists.");
 				}
 				cliOptions.setOutputFile(optionValue);
+			}
+			if (cli.hasOption('g')) {
+				cliOptions.setGzippedOutput(true);
 			}
 			if (cli.hasOption("m")) {
 				cliOptions.setMarker(true);

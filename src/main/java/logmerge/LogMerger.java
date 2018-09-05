@@ -1,14 +1,27 @@
 package logmerge;
 
-import logmerge.cli.CliOptions;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import logmerge.cli.CliOptions;
 
 public class LogMerger {
 	private static final Logger LOGGER = Logger.getLogger(LogMerger.class.getName());
@@ -20,9 +33,7 @@ public class LogMerger {
 
 	public void merge() {
 		List<LogFile> logFiles = null;
-		OutputStream outputStream = null;
-		try {
-			outputStream = createOutputStream(cliOptions);
+		try (OutputStream outputStream = createOutputStream(cliOptions)) {
 			logFiles = createLogFiles(cliOptions);
 			LogFile nextLogFile = getNextLogFile(logFiles);
 			while (nextLogFile != null) {
@@ -51,24 +62,26 @@ public class LogMerger {
 					}
 				}
 			}
-			if (outputStream != null) {
-				try {
-					outputStream.close();
-				} catch (IOException ignored) {
-				}
-			}
 		}
 	}
 
-	private OutputStream createOutputStream(CliOptions cliOptions) throws FileNotFoundException {
+	private OutputStream createOutputStream(CliOptions cliOptions) throws IOException {
 		OutputStream returnValue;
 		String outputFile = cliOptions.getOutputFile();
 		if (outputFile == null) {
 			returnValue = System.out;
 		} else {
-			returnValue = new FileOutputStream(new File(outputFile));
+			returnValue = cliOptions.isGzippedOutput() ? gzippedOutputStream(outputFile) : textOutputStream(outputFile);
 		}
 		return returnValue;
+	}
+
+	private GZIPOutputStream gzippedOutputStream(String outputFile) throws FileNotFoundException, IOException {
+		return new GZIPOutputStream(new FileOutputStream(new File(outputFile)));
+	}
+
+	private FileOutputStream textOutputStream(String outputFile) throws FileNotFoundException {
+		return new FileOutputStream(new File(outputFile));
 	}
 
 	private LogFile getNextLogFile(List<LogFile> logFiles) throws IOException {
@@ -97,17 +110,39 @@ public class LogMerger {
 		int marker = 0;
 		for (String fileName : cliOptions.getLogFiles()) {
 			try {
-				BufferedReader fileReader = new BufferedReader(
-						new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
+				BufferedReader fileReader = createBufferedReader(fileName);
 				LogFile logFile = new LogFile(fileName, fileReader, simpleDateFormat, cliOptions, marker++);
 				logFiles.add(logFile);
 			} catch (FileNotFoundException e) {
-				throw new LogMergeException(LogMergeException.Reason.FileNotFound, "File not found: " + e.getMessage());
+				throw new LogMergeException(LogMergeException.Reason.FileNotFound,
+						"File not found: " + e.getMessage());
 			} catch (UnsupportedEncodingException e) {
 				throw new LogMergeException(LogMergeException.Reason.UnsupportedEncoding,
 						"Unsupported encoding: " + e.getMessage());
+			} catch (IOException e) {
+				throw new LogMergeException(LogMergeException.Reason.IOException,
+						"Generic IO exception: " + e.getMessage());
 			}
 		}
 		return logFiles;
+	}
+
+	private BufferedReader createBufferedReader(final String fileName) throws IOException {
+		final boolean isGzipped = checkIfFileIsGzipped(fileName);
+		InputStream fileInputStream = new FileInputStream(fileName);
+		if (isGzipped) {
+			return new BufferedReader(
+					new InputStreamReader(new GZIPInputStream(fileInputStream), StandardCharsets.UTF_8));
+		} else {
+			return new BufferedReader(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8));
+		}
+	}
+
+	private boolean checkIfFileIsGzipped(String fileName) throws IOException {
+		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(fileName))) {
+			byte[] magicHeader = new byte[2];
+			bufferedInputStream.read(magicHeader);
+			return magicHeader[0] == (byte) 0x1f && magicHeader[1] == (byte) 0x8b;
+		}
 	}
 }

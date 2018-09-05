@@ -10,6 +10,7 @@ public class CliOptions {
 	private List<String> logFiles = new ArrayList<>();
 	private int[] fieldNumber = new int[] { 1 };
 	private String outputFile = null;
+	private boolean gzippedOutput = false;
 	private boolean marker = false;
 	private boolean verbose;
 
@@ -49,6 +50,14 @@ public class CliOptions {
 		return outputFile;
 	}
 
+	public void setGzippedOutput(boolean gzippedOutput) {
+		this.gzippedOutput = gzippedOutput;
+	}
+
+	public boolean isGzippedOutput() {
+		return gzippedOutput;
+	}
+
 	public void setMarker(boolean marker) {
 		this.marker = marker;
 	}
@@ -67,8 +76,15 @@ public class CliOptions {
 
 	@Override
 	public String toString() {
-		return "CliOptions{" + "delimiter='" + delimiter + '\'' + ", timestampFormat='" + timestampFormat + '\''
-				+ ", logFiles=" + logFiles + ", fieldNumber=" + Arrays.toString(fieldNumber) + ", outputFile='"
-				+ outputFile + '\'' + ", marker=" + marker + ", verbose=" + verbose + '}';
+		return "CliOptions{" +
+				"delimiter='" + delimiter + '\'' +
+				", timestampFormat='" + timestampFormat + '\'' +
+				", logFiles=" + logFiles +
+				", fieldNumber=" + Arrays.toString(fieldNumber) +
+				", outputFile='" + outputFile + '\'' +
+				", gzippedOutput=" + gzippedOutput +
+				", marker=" + marker +
+				", verbose=" + verbose +
+				"}";
 	}
 }
