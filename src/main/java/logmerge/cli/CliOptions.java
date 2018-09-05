@@ -55,7 +55,7 @@ public class CliOptions {
 	}
 
 	public boolean isGzippedOutput() {
-		return gzippedOutput;
+		return outputFile != null && gzippedOutput;
 	}
 
 	public void setMarker(boolean marker) {
