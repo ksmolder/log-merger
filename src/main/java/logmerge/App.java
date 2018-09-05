@@ -1,10 +1,10 @@
 package logmerge;
 
-import logmerge.cli.CliOptions;
-import logmerge.cli.CliParser;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import logmerge.cli.CliOptions;
+import logmerge.cli.CliParser;
 
 public class App {
 	private static final Logger LOGGER = Logger.getLogger(App.class.getName());
@@ -16,7 +16,7 @@ public class App {
 			app.run(args);
 		} catch (Exception e) {
 			if (e instanceof LogMergeException) {
-				LogMergeException logMergeException = (LogMergeException)e;
+				LogMergeException logMergeException = (LogMergeException) e;
 				LogMergeException.Reason reason = logMergeException.getReason();
 				if (reason == LogMergeException.Reason.CliParser) {
 					System.out.println(e.getMessage());

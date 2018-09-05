@@ -1,6 +1,5 @@
 package logmerge.cli;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +8,7 @@ public class CliOptions {
 	private String delimiter = ";";
 	private String timestampFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 	private List<String> logFiles = new ArrayList<>();
-	private int[] fieldNumber = new int[]{1};
+	private int[] fieldNumber = new int[] { 1 };
 	private String outputFile = null;
 	private boolean marker = false;
 	private boolean verbose;
@@ -68,14 +67,8 @@ public class CliOptions {
 
 	@Override
 	public String toString() {
-		return "CliOptions{" +
-				"delimiter='" + delimiter + '\'' +
-				", timestampFormat='" + timestampFormat + '\'' +
-				", logFiles=" + logFiles +
-				", fieldNumber=" + Arrays.toString(fieldNumber) +
-				", outputFile='" + outputFile + '\'' +
-				", marker=" + marker +
-				", verbose=" + verbose +
-				'}';
+		return "CliOptions{" + "delimiter='" + delimiter + '\'' + ", timestampFormat='" + timestampFormat + '\''
+				+ ", logFiles=" + logFiles + ", fieldNumber=" + Arrays.toString(fieldNumber) + ", outputFile='"
+				+ outputFile + '\'' + ", marker=" + marker + ", verbose=" + verbose + '}';
 	}
 }

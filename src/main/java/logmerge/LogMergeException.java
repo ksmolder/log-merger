@@ -1,6 +1,9 @@
 package logmerge;
 
 public class LogMergeException extends RuntimeException {
+
+	private static final long serialVersionUID = -7772936327838796281L;
+
 	private final Reason reason;
 
 	public enum Reason {
